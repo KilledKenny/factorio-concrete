@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<meta charset="utf-8"/>
+<script type="text/javascript" src="opentype.js"></script>
+<script type="text/javascript" src="pako.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css" href="bootstrap-slider.css">
+<script type="text/javascript" src="bootstrap-slider.js"></script>
+
+<style type="text/css">
+.jumbotron{
+	padding-top:2rem;
+}
+</style>
+<style type="text/css">@font-face{font-family:"Comic Sans"; src:url("comic.ttf"); }</style>
+<script type="text/javascript">
+old="";
+function main(arg) {
+	//opentype.load('comic.ttf', function(err, font) {
+	//if (err) {
+	//	alert('Could not load font: ' + err);
+	//} else {
+		textarea=document.getElementById("input");
+		
+		old = textarea.value;
+		canvas=document.getElementById("text");
+		ctx=canvas.getContext('2d');
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		fontsizeslider=document.getElementById("ex6");
+		size = fontsizeslider.value;
+
+		if (size == 0) size = 32;
+
+		ctx.font = size + "px " + document.getElementById("font").value;
+		console.log(textarea.value);
+		lines=textarea.value.split("\n");
+		for (var i = 0; i < lines.length; i++) {
+		console.log(ctx.fillText(lines[i],0,((size/1)*i) + size));
+			//lines[i]
+		}
+
+
+		o=ctx.getImageData(0,0,canvas.width,canvas.height);
+		
+		console.log(o);
+		out = [];
+		for (var i = 0; i < o.data.length; i += 4) {
+
+			p = i/4;
+			x = p%canvas.width;
+			y = (p-x)/canvas.width;
+			//console.log(o.data[i+3]);
+			if (o.data[i+3] > 255/2){
+				//console.log(x,y);
+				out.push({"x":x,"y":y});
+			}
+		}
+		print(out);
+	}
+
+function print(points) {
+
+	base = {"blueprint":{"icons":[{"signal":{"type":"item","name":"concrete"},"index":1}],"tiles":[],"item":"blueprint","version":64426672129}}
+	maxX = -999999;
+	maxY = -999999;
+	minX = 999999;
+	minY = 999999;
+
+	for (var i = points.length - 1; i >= 0; i--) {
+		if (points[i]["x"] > maxX ) maxX = points[i]["x"];
+		if (points[i]["y"] > maxY ) maxY = points[i]["y"];
+
+		if (points[i]["x"] < minX ) minX = points[i]["x"];
+		if (points[i]["y"] < minY ) minY = points[i]["y"];
+	}
+	
+	centerX = Math.round((maxX/2)+(minX/2));
+	centerY = Math.round((maxY/2)+(minY/2));
+
+	console.log(minX, maxX, centerX, minX-centerX, maxX-centerX);
+	console.log(minY, maxY, centerY, minY-centerY, maxY-centerY);
+
+	
+tile=document.getElementById("tile").value;
+	for (var i = points.length - 1; i >= 0; i--) {
+	a = {"x": points[i]["x"] - centerX, "y": points[i]["y"] - centerY };
+	base["blueprint"]["tiles"].push({"position":a,"name":tile});
+	}
+
+	b = pako.deflate(JSON.stringify(base), { to: 'string' });
+	res =  "0"+btoa(b);
+	console.log(res);
+	document.getElementById("resutl").value = res;
+}
+
+/*Lorem ipsum dolor sit amet, consectetur adipisicing elit,
+sed do eiusmod tempor incididunt ut labore et dolore magna
+aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Duis aute irure dolor in reprehenderit in voluptate velit
+esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+occaecat cupidatat non proident, sunt in culpa qui officia
+deserunt mollit anim id est laborum.*/
+
+function loadSlider() {
+
+// Without JQuery
+var slider = new Slider("#ex6");
+slider.on("slide", function(sliderValue) {
+	document.getElementById("ex6SliderVal").textContent = sliderValue;
+	main();
+});
+}
+
+function loadClipp(){
+var copyTextareaBtn = document.getElementById('clip-but');
+
+copyTextareaBtn.addEventListener('click', function(event) {
+  var copyTextarea = document.getElementById('resutl');
+  console.log(copyTextarea);
+  //copyTextarea.disabled =false;
+  copyTextarea.select();
+
+  try {
+    var successful = document.execCommand('copy');
+    var msg = successful ? 'successful' : 'unsuccessful';
+    console.log('Copying text command was ' + msg);
+  } catch (err) {
+    console.log('Oops, unable to copy');
+  }
+  //copyTextarea.disabled =true;
+});
+}
+
+
+document.addEventListener('DOMContentLoaded', loadSlider);
+document.addEventListener('DOMContentLoaded', loadClipp);
+
+
+document.addEventListener('DOMContentLoaded', main);
+document.addEventListener('DOMContentLoaded', function (){document.getElementById('input').addEventListener('keyup', main);});
+</script>
+</head>
+<body>
+	<div class="container">
+	  <div class="header clearfix">
+		<nav>
+		  <ul class="nav nav-pills float-right">
+			<li class="nav-item">
+			  <a class="nav-link" href="#"><i class="fa fa-github" style="font-size:24px"></i> Github</a>
+			</li>
+		  </ul>
+		</nav>
+		<h3 class="text-muted">Concrete</h3>
+	  </div>
+</div>
+	  <div class="container">
+		<img src="concrete.png" class="img-fluid">
+		<p></p>
+		</div>
+	
+
+<div class="container">
+<div class="jumbotron">
+
+			<div class="row">
+				<div class="col-sm-12">
+					<div class="form-group">
+						<label>Text to convert</label>
+						<textarea class="form-control" id="input">Concrete</textarea>
+					</div>
+				</div>
+
+				
+			</div>
+			<div class="row">
+			<div class="col-sm-6">
+			<div class="row">
+			<div class="col-sm-12">
+				<label>Font</label>
+					<select class="form-control" id="font">
+					<option>Comic Sans</option>
+					</select>
+			</div>
+			<div class="col-sm-12">
+				<label>Tile</label>
+					<select class="form-control" id="tile">
+					<option value="concrete">Concrete</option>
+					<option value="stone-path">Stone</option>
+					<option value="hazard-concrete-right">Hazard Concrete (Right)</option>
+					<option value="hazard-concrete-left">Hazard Concrete (Left)</option>
+
+					</select>
+			</div>
+			<div class="col-sm-12">
+				<div class="form-group">
+				<span id="ex6CurrentSliderValLabel">Font size: <span id="ex6SliderVal">3</span></span><br>
+				<input id="ex6" type="text" data-slider-min="12" data-slider-max="64" data-slider-step="1" data-slider-value="32"/>
+				
+				</div>
+			</div>
+			</div>
+			</div>
+				<div class="col-sm-6">
+					<div class="form-group">
+						<label>Blueprint String</label>
+						<textarea class="form-control" id="resutl"></textarea>
+						<br>
+						<button  class="btn btn-primary" id="clip-but">Coppy to clipboard</button>
+					</div>
+				</div>
+			
+			</div>
+		
+		<br>
+		<div class="col-sm-12">
+		<label>Preview</label>
+		<canvas id="text" width="1000" height="400"></canvas>
+		</div>
+	  </div>
+
+	  <footer class="footer">
+		<p>The end...</p>
+	  </footer>
+
+	</div> <!-- /container -->
+
+</body>
+</html>
